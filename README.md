@@ -1,2 +1,2 @@
-# poduim
+# podium
 Generic application platform

@@ -1,46 +1,24 @@
 #!/usr/bin/env bash
 
-# MongoDB repo
-apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
-echo 'deb http://downloads-distro.mongodb.org/repo/debian-sysvinit dist 10gen' | tee /etc/apt/sources.list.d/mongodb.list
-
+export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y --force-yes python python-pip python-dev couchdb mongodb-org
+apt-get install -y --force-yes python python-pip python-dev mysql-server mysql-client libmysqlclient-dev
 
-# CouchDB config
-
-cat >/etc/couchdb/local.d/10-network.ini <<EOT
-[httpd]
-port = 5984
-bind_address = 0.0.0.0
-EOT
-chown -R couchdb /etc/couchdb
-
-service couchdb restart
-
-#MongoDB config
-cat >/etc/mongod.conf <<EOT
-storage:
-    dbPath: "/var/lib/mongodb"
-    directoryPerDB: true
-    journal:
-        enabled: true
-systemLog:
-    destination: file
-    path: "/var/log/mongodb/mongod.log"
-    logAppend: true
-    timeStampFormat: iso8601-utc
-processManagement:
-    fork: true
-net:
-    bindIp: 0.0.0.0
-    port: 27017
-    wireObjectCheck: true
-    unixDomainSocket: 
-        enabled: false
+# MySQL config
+cat <<EOT >/etc/mysql/conf.d/listen_everywhere.cnf
+[mysqld]
+bind-address=0.0.0.0
 EOT
 
-service mongod restart
+echo "create database podium_dev;" | mysql -uroot
+echo "create database podium_test;" | mysql -uroot
+echo "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'password';" |mysql -uroot
+mysqladmin -uroot password "password" # Not secure but this is not exposed to the internet, so it's fine
+service mysql restart
 
 cd /vagrant
 sudo python setup.py develop
+
+# python bcrypt doesn't install correctly...
+pip uninstall bcrypt
+pip install bcrypt

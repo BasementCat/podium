@@ -1,2 +1,2 @@
 # podium
-Generic application platform
+Flask application scaffold and utilities

@@ -61,8 +61,8 @@ def load_template(name):
             break
 
     tpl_config['_sub_templates'] = []
-    if 'extends' in tpl_data:
-        for sub_tpl_name, sub_tpl_params in tpl_data['extends'].items():
+    if 'extends' in tpl_config:
+        for sub_tpl_name, sub_tpl_params in tpl_config['extends'].items():
             try:
                 sub_tpl_config = load_template(sub_tpl_name)
             except Exception as e:
@@ -85,3 +85,7 @@ def load_template(name):
             tpl_config['_sub_templates'].append(sub_tpl_config)
 
     return tpl_config
+
+if __name__ == '__main__':
+    import pprint
+    pprint.pprint(load_template('library'))

@@ -18,7 +18,7 @@
         {
             "name": "description",
             "description": "Project description:",
-            "empty": true,
+            "empty": true
         },
         {
             "name":"use_name_as_desc",
@@ -32,7 +32,7 @@
         {
             "name": "long_description",
             "description": "Long project description:",
-            "empty": true,
+            "empty": true
         },
         {
             "name":"use_desc_as_longdesc",

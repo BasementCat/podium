@@ -1,0 +1,87 @@
+#!/usr/bin/env python
+
+import sys
+import os
+import json
+
+TEMPLATE_DIRS = ['./templates']
+
+def ask(question, empty=False, options=None, default=None):
+    prompt = ''
+    if question:
+        prompt = question + ' '
+        if options:
+            prompt += '(' + '/'.join([str(o) for o in options]) + ') '
+        if default:
+            prompt += '[' + str(default) + '] '
+    while True:
+        out = raw_input(prompt)
+        if not out:
+            if default:
+                return default
+            if not empty:
+                continue
+        if options and out not in options:
+            continue
+        return out or None
+
+def ask_bool(question, default=None):
+    dfl = None
+    if default is True:
+        dfl = 'y'
+    elif default is False:
+        dfl = 'n'
+    out = ask(question, False, ['y', 'n'], dfl)
+    if out == 'y':
+        return True
+    return False
+
+def load_template(name):
+    """Load a template based on its name.
+
+    Look in the configured template directories for the named template and load
+    its config.json, returning the parsed JSON.  If it depends on other
+    templates, load them as well and merge in their configurations.
+    """
+    tpl_config_file = None
+    tpl_config = None
+    for dirname in TEMPLATE_DIRS:
+        candidate = os.path.join(dirname, name)
+        if os.path.exists(candidate):
+            tpl_config_file = os.path.join(candidate, 'config.json')
+            if not os.path.exists(tpl_config_file):
+                raise Exception("Found template '%s' at '%s' but it lacks config.json" % (name, candidate))
+            try:
+                with open(tpl_config_file, 'r') as fp:
+                    tpl_config = json.load(fp)
+            except ValueError:
+                raise Exception("Can't load '%s' for template '%s': invalid JSON" % (tpl_config_file, name))
+            data_candidate = os.path.join(candidate, 'data')
+            tpl_config['_data_dir'] = data_candidate if os.path.exists(data_candidate) else None
+            break
+
+    tpl_config['_sub_templates'] = []
+    if 'extends' in tpl_data:
+        for sub_tpl_name, sub_tpl_params in tpl_data['extends'].items():
+            try:
+                sub_tpl_config = load_template(sub_tpl_name)
+            except Exception as e:
+                raise Exception("Can't load dependency '%s' of '%s': %s", sub_tpl_name, name, str(e))
+
+            if 'include' in sub_tpl_params:
+                sub_tpl_config['variables'] = [
+                    var
+                    for var
+                    in sub_tpl_config['variables']
+                    if var['name'] in sub_tpl_params['include']
+                ]
+            elif 'exclude' in sub_tpl_params:
+                sub_tpl_config['variables'] = [
+                    var
+                    for var
+                    in sub_tpl_config['variables']
+                    if var['name'] not in sub_tpl_params['include']
+                ]
+            tpl_config['_sub_templates'].append(sub_tpl_config)
+
+    return tpl_config

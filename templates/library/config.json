@@ -1,0 +1,22 @@
+{
+    "name": "Python Library",
+    "description": "Basic Python library, with a setup.py file and a package or module",
+    "authors": [
+        {
+            "Name": "Alec Elton",
+            "Email": "alec.elton@gmail.com",
+            "GitHub": "basementcat"
+        }
+    ],
+    "extends": {
+        "base": {}
+    },
+    "variables": [
+        {
+            "name": "is_module",
+            "description": "Is this a package or a module (single file)?",
+            "options": ["package", "module"],
+            "default": "package"
+        }
+    ]
+}

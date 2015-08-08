@@ -1,0 +1,62 @@
+{
+    "name": "Base Template",
+    "description": "The base template provides a set of variables that could be common to many other modules",
+    "authors": [
+        {
+            "Name": "Alec Elton",
+            "Email": "alec.elton@gmail.com",
+            "GitHub": "basementcat"
+        }
+    ],
+    "extends": {},
+    "variables": [
+        {
+            "name": "version",
+            "description": "Project version:",
+            "empty": true
+        },
+        {
+            "name": "description",
+            "description": "Project description:",
+            "empty": true,
+        },
+        {
+            "name":"use_name_as_desc",
+            "description": "Use project name as description?",
+            "type": "bool",
+            "default": true,
+            "unless": "description",
+            "source": "name",
+            "destination": "description"
+        },
+        {
+            "name": "long_description",
+            "description": "Long project description:",
+            "empty": true,
+        },
+        {
+            "name":"use_desc_as_longdesc",
+            "description": "Use short description as long description?",
+            "type": "bool",
+            "default": true,
+            "unless": "long_description",
+            "source": "description",
+            "destination": "long_description"
+        },
+        {
+            "name": "url",
+            "description": "Project URL:",
+            "empty": true
+        },
+        {
+            "name": "author",
+            "description": "Author name:",
+            "empty": true
+        },
+        {
+            "name": "author_email",
+            "description": "Author email:",
+            "empty": true
+        }
+    ]
+}

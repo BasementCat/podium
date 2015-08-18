@@ -84,8 +84,63 @@ def load_template(name):
                 ]
             tpl_config['_sub_templates'].append(sub_tpl_config)
 
+    tpl_config['internal_name'] = name
     return tpl_config
 
+def ask_config(config):
+    out = {config['internal_name']: {}}
+    for sub_tpl_config in config['_sub_templates']:
+        out[sub_tpl_config['internal_name']] = ask_config(sub_tpl_config)
+    if 'variables' in config:
+        for opt in config['variables']:
+            # Some options may prevent this question from being asked
+            if 'onlyif' in opt:
+                if (opt['onlyif'] not in out[config['internal_name']]) or (not out[config['internal_name']][opt['onlyif']]):
+                    continue
+            if 'unless' in opt:
+                if (opt['unless'] in out[config['internal_name']]) and out[config['internal_name']][opt['unless']] is not None:
+                    continue
+
+            caster = str
+            if 'type' in opt:
+                try:
+                    caster = getattr(__builtins__, opt['type'])
+                except AttributeError:
+                    raise Exception("Invalid variable type '%s' for '%s' in '%s'" % (opt['type'], opt['name'], config['name']))
+            while True:
+                if caster is bool:
+                    value = ask_bool(opt['description'], opt['default'] if 'default' in opt else None)
+                    break
+                else:
+                    value = ask(
+                        opt['description'],
+                        empty=opt['empty'] if 'empty' in opt else False,
+                        options=opt['options'] if 'options' in opt else None,
+                        default=opt['default'] if 'default' in opt else None,
+                    )
+                    try:
+                        if value is not None:
+                            value = caster(value)
+                        break
+                    except ValueError:
+                        print "A valid %s is required" % (caster.__name__,)
+
+            # The value could potentially come from another location
+            if 'source' in opt:
+                # In this case, the option must be a boolean - and if it's not true we don't do anything
+                if not value or opt['source'] not in out[config['internal_name']]:
+                    continue
+                value = out[config['internal_name']][opt['source']]
+
+            # The value could be assigned to another key
+            key = opt['name']
+            if 'destination' in opt:
+                key = opt['destination']
+
+            out[config['internal_name']][key] = value
+    return out
+
 if __name__ == '__main__':
+    config = load_template('library')
     import pprint
-    pprint.pprint(load_template('library'))
+    pprint.pprint(ask_config(config))

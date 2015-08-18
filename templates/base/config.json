@@ -11,6 +11,10 @@
     "extends": {},
     "variables": [
         {
+            "name": "name",
+            "description": "Project name:"
+        },
+        {
             "name": "version",
             "description": "Project version:",
             "empty": true
